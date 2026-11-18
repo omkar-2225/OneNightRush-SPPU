@@ -58,26 +58,26 @@ def get_resource_types(subject_id: int, db = Depends(get_db)):
     return [dict(row) for row in rows]
 
 
-@app.get("/subjects/{subject_id}/resources",response_model=List[Resource])
-def get_resources(subject_id: int, type_id: int):
-    
-    # subject exits or not 
-    if not any(subject["id"] == subject_id for subject in SUBJECTS):
-        raise HTTPException(status_code=404, detail="Subject not found.")
-    
-    # filter resource
-    result = [
-        resource
-        for resource in RESOURCES
-        if resource["subject_id"] == subject_id
-        and resource["type_id"] == type_id
-        and resource["published"] is True
-    ]
-    
-    # sort the resource 
-    result.sort(key = lambda x: (x["unit_number"] is None,
-                                 x["unit_number"] or 0)
-                )
-    
-    return result
-    
+@app.get("/subjects/{subject_id}/resources", response_model=List[Resource])
+def get_resources(subject_id: int, type_id: int, db = Depends(get_db)):
+    subject = db.execute(
+        text("select 1 from subjects where id = :subject_id"),
+        {"subject_id": subject_id},
+    ).first()
+    if subject is None:
+        raise HTTPException(status_code=404, detail="Subject not found")
+
+    rows = db.execute(
+        text("""
+            select r.id, r.title, r.url, r.link_kind,
+                   u.unit_number, u.title as unit_title
+            from resources r
+            left join units u on u.id = r.unit_id
+            where r.subject_id = :subject_id
+              and r.type_id = :type_id
+              and r.published = true
+            order by u.unit_number nulls last, r.display_order
+        """),
+        {"subject_id": subject_id, "type_id": type_id},
+    ).mappings().all()
+    return [dict(row) for row in rows]
