@@ -35,7 +35,7 @@ export default function BrowseFilters({ branch: initialBranch, year: initialYear
   }
 
   return (
-    <form action="/browse" method="get" className="browse-filters">
+    <form action="/subjects" method="get" className="browse-filters">
       <label className="filter-field">
         <span>Branch</span>
         <select name="branch" value={branch} onChange={changeBranch}>
@@ -75,7 +75,7 @@ export default function BrowseFilters({ branch: initialBranch, year: initialYear
       </label>
 
       <button className="button browse-submit" type="submit">
-        Show subjects <span aria-hidden="true">→</span>
+        Search subjects <span aria-hidden="true">→</span>
       </button>
     </form>
   );
