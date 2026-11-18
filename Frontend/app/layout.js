@@ -14,8 +14,8 @@ const body = Atkinson_Hyperlegible({
 });
 
 export const metadata = {
-  title: "OneNightRush",
-  description: "Notes, past papers and what to study first for SPPU exams. Free, no login.",
+  title: "OneNightRush — SPPU study desk",
+  description: "A calmer place to find SPPU Computer Engineering notes, papers and practicals.",
 };
 
 export default function RootLayout({ children }) {
@@ -25,12 +25,15 @@ export default function RootLayout({ children }) {
         <div className="sheet">
           <header className="top">
             <Link href="/" className="brand">
+              <span className="brand-mark" aria-hidden="true">ON</span>
               OneNightRush
             </Link>
+            <span className="top-note">Made for the late study hours</span>
           </header>
           <main className="page">{children}</main>
           <footer className="foot">
             <p>Unofficial. Not affiliated with Savitribai Phule Pune University.</p>
+            <p>Take a breath. Then take the next page.</p>
           </footer>
         </div>
       </body>

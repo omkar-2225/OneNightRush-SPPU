@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getSubjects, getTypes, getResources } from "@/lib/api";
-import ResourceItem from "@/components/ResourceItem";
+import { getSubjects, getTypes, getResources } from "../../../../lib/api";
+import ResourceItem from "../../../../components/ResourceItem";
 
 // The backend already sorts by unit, so groups come out in order.
 function groupByUnit(resources) {
@@ -37,24 +37,30 @@ export default async function CategoryPage({ params }) {
   return (
     <section>
       <Link href={`/subject/${id}`} className="crumb">
-        {subject.name}
+        <span className="crumb-arrow" aria-hidden="true">←</span> {subject.name}
       </Link>
-      <h1>{type.name}</h1>
+      <header className="page-heading">
+        <span className="eyebrow">A good place to pick up</span>
+        <h1>{type.name}</h1>
+        <p className="lead">{subject.name} · Study material</p>
+      </header>
 
-      {groups.length === 0 && <p>Nothing is published here yet. Check back soon.</p>}
+      {groups.length === 0 && (
+        <p className="empty-state">Nothing is published here yet. Check back soon.</p>
+      )}
 
       {groups.map((group) => (
-        <div key={group.key}>
+        <section className="unit-group" key={group.key}>
           {group.number != null && (
-            <h2>
-              Unit {group.number}
-              {group.title ? `: ${group.title}` : ""}
+            <h2 className="unit-heading">
+              <span className="unit-label">Unit {group.number}</span>
+              {group.title && <span className="unit-title">{group.title}</span>}
             </h2>
           )}
           {group.items.map((resource) => (
             <ResourceItem key={resource.id} resource={resource} />
           ))}
-        </div>
+        </section>
       ))}
     </section>
   );

@@ -9,11 +9,15 @@ async function get(path) {
   return res.json();
 }
 
-export function getSubjects() {
+export function getSubjects({
+  branch = "Computer Engineering",
+  year = 2,
+  semester = 3,
+} = {}) {
   const query = new URLSearchParams({
-    branch: "Computer Engineering",
-    year: "2",
-    semester: "3",
+    branch,
+    year: String(year),
+    semester: String(semester),
   });
   return get(`/subjects?${query}`);
 }
