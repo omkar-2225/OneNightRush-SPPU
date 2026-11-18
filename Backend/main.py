@@ -2,7 +2,6 @@ from typing import List
 from fastapi import FastAPI, HTTPException, Depends
 from middleware import setup_CORS
 from schemas import Subject, Resource, ResourceType
-from sampleData import SUBJECTS, RESOURCE_TYPES, RESOURCES
 from sqlalchemy import text
 from db import get_db
 
