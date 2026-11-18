@@ -10,7 +10,7 @@ export default function Home() {
           <div className="pattern-label">
             <span>SPPU · 2024 Pattern</span>
             <span className="label-dot" aria-hidden="true" />
-            <span>Made for engineering students</span>
+            <span>Made for students by the student</span>
           </div>
           <h1>
             Your next
@@ -27,7 +27,9 @@ export default function Home() {
             Get started <span aria-hidden="true">→</span>
           </Link>
           <p className="hero-note">
-            Currently setting up First Year (common) and Computer Engineering.
+            Open now: Computer Engineering · Second Year · Semester 3.
+            <br />
+            First Year is shared across branches.
           </p>
         </div>
 
