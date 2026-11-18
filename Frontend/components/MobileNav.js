@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import ThemeToggle from "./ThemeToggle";
 
 const feedbackUrl = "https://github.com/omkar-2225/OneNightRush-SPPU/issues/new";
 
@@ -41,6 +42,7 @@ export default function MobileNav() {
           >
             Feedback
           </a>
+          <ThemeToggle className="mobile-menu-theme" showLabel />
           <Link
             className="mobile-menu-link mobile-menu-cta"
             href="/browse"

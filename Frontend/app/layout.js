@@ -1,6 +1,7 @@
 import { Bricolage_Grotesque, Atkinson_Hyperlegible } from "next/font/google";
 import Link from "next/link";
 import MobileNav from "../components/MobileNav";
+import ThemeToggle from "../components/ThemeToggle";
 import "./globals.css";
 
 const heading = Bricolage_Grotesque({
@@ -46,6 +47,7 @@ export default function RootLayout({ children }) {
               <Link className="nav-link nav-cta" href="/browse">
                 Get started
               </Link>
+              <ThemeToggle />
             </nav>
             <MobileNav />
             <span className="top-note">Made for the late study hours</span>
