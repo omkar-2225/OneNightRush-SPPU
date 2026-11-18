@@ -1,8 +1,10 @@
 from typing import List
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from middleware import setup_CORS
 from schemas import Subject, Resource, ResourceType
 from sampleData import SUBJECTS, RESOURCE_TYPES, RESOURCES
+from sqlalchemy import text
+from db import get_db
 
 app = FastAPI()
 setup_CORS(app)
@@ -12,43 +14,48 @@ def health_check():
     return {"status": "ok"}
 
 @app.get("/subjects", response_model=List[Subject])
-def get_subjects(branch: str, year: int, semester: int):
+def get_subjects(branch: str, year: int, semester: int, db = Depends(get_db)):
     branch = branch.strip()
-    return [
-        subject for subject in SUBJECTS
-        if subject["branch"] == branch 
-        and subject["year"] == year
-        and subject["semester"] == semester
-    ]
+    rows = db.execute(
+        text(
+            """
+            select id, name, code
+            from subjects
+            where lower(branch) = lower(:branch) and year = :year and semester = :semester
+            order by name
+            """
+        ),
+        {"branch": branch, "year": year, "semester": semester},
+    ).mappings().all()
+    return [dict(row) for row in rows]
 
 
 @app.get("/subjects/{subject_id}/types", response_model=List[ResourceType])
-def get_resource_types(subject_id: int):
-
-    # Step 1: Check whether subject exists
-    if not any(subject["id"] == subject_id for subject in SUBJECTS):
+def get_resource_types(subject_id: int, db = Depends(get_db)):
+    
+    subject = db.execute(
+        text("select 1 from subjects where id = :subject_id"),
+        {"subject_id": subject_id},
+    ).first()
+    if subject is None:
         raise HTTPException(status_code=404, detail="Subject not found")
-
-    # Step 2: Collect type IDs from published resources
-    type_ids = {
-        resource["type_id"]
-        for resource in RESOURCES
-        if resource["subject_id"] == subject_id
-        and resource["published"] is True
-    }
-
-    # Step 3: Filter resource types
-    result = [
-        resource_type
-        for resource_type in RESOURCE_TYPES
-        if resource_type["id"] in type_ids
-    ]
-
-    # Step 4: Sort by display order
-    result.sort(key=lambda x: x["display_order"])
-
-    # Step 5: Return result
-    return result
+    
+    rows = db.execute(
+        text(
+            """
+            select rt.id, rt.name
+            from resource_types rt
+            where exists (
+            select 1 from resources r
+            where r.type_id = rt.id
+            and r.subject_id = :subject_id
+            and r.published = true
+            )
+            order by rt.display_order
+            """
+        ),  {"subject_id": subject_id}
+    ).mappings().all()
+    return [dict(row) for row in rows]
 
 
 @app.get("/subjects/{subject_id}/resources",response_model=List[Resource])
