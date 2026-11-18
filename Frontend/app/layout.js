@@ -33,7 +33,12 @@ export default function RootLayout({ children }) {
           <main className="page">{children}</main>
           <footer className="foot">
             <p>Unofficial. Not affiliated with Savitribai Phule Pune University.</p>
-            <p>Take a breath. Then take the next page.</p>
+            <p>
+              <a href="https://github.com/omkar-2225/OneNightRush-SPPU/issues/new" target="_blank" rel="noopener noreferrer">
+                Feedback &amp; corrections
+              </a>
+              {" · "}Take a breath. Then take the next page.
+            </p>
           </footer>
         </div>
       </body>
