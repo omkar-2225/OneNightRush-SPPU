@@ -37,7 +37,7 @@ export default function RootLayout({ children }) {
               <Link className="nav-link" href="/browse">Browse subjects</Link>
               <a
                 className="nav-link"
-                href="https://github.com/omkar-2225/OneNightRush-SPPU/issues/new"
+                href="https://forms.gle/xeuP8LWLWy1KVddF9"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -52,9 +52,9 @@ export default function RootLayout({ children }) {
           </header>
           <main className="page">{children}</main>
           <footer className="foot">
-            <p>Unofficial. Not affiliated with Savitribai Phule Pune University.</p>
+            <p>Unofficial. All content is for educational purposes only. Not affiliated with Savitribai Phule Pune University.</p>
             <p>
-              <a href="https://github.com/omkar-2225/OneNightRush-SPPU/issues/new" target="_blank" rel="noopener noreferrer">
+              <a href="https://forms.gle/xeuP8LWLWy1KVddF9" target="_blank" rel="noopener noreferrer">
                 Feedback &amp; corrections
               </a>
               {" · "}Take a breath. Then take the next page.

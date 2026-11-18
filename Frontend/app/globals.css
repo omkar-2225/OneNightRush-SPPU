@@ -879,6 +879,7 @@ h3 {
   .foot {
     align-items: flex-start;
     flex-direction: column;
+    font-weight: bolder;
     gap: 4px;
   }
 }

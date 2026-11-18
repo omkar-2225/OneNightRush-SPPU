@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-const feedbackUrl = "https://github.com/omkar-2225/OneNightRush-SPPU/issues/new";
+const feedbackUrl = "https://forms.gle/xeuP8LWLWy1KVddF9";
 
 export default function Home() {
   return (
