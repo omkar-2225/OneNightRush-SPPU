@@ -61,7 +61,7 @@ export default async function SubjectsPage({ searchParams }) {
           <ul className="rows">
             {subjects.map((subject, index) => (
               <li className="subject-entry" key={subject.id}>
-                <Link href={`/subject/${subject.id}`} className="row">
+                <Link href={`/subject/${subject.id}?${query}`} className="row">
                   <span className="row-number">
                     {String(index + 1).padStart(2, "0")}
                   </span>

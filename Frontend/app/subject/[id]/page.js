@@ -1,18 +1,28 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSubjects, getTypes } from "../../../lib/api";
+import { getStudySelection } from "../../../lib/studySelection";
 
-export default async function SubjectPage({ params }) {
+export default async function SubjectPage({ params, searchParams }) {
   const { id } = await params;
   if (!/^\d+$/.test(id)) notFound();
 
-  const [subjects, types] = await Promise.all([getSubjects(), getTypes(id)]);
+  const selection = getStudySelection(await searchParams);
+  const query = new URLSearchParams({
+    branch: selection.branch,
+    year: String(selection.year),
+    semester: String(selection.semester),
+  });
+  const [subjects, types] = await Promise.all([
+    getSubjects(selection),
+    getTypes(id),
+  ]);
   const subject = subjects?.find((s) => String(s.id) === id);
   if (!subject || types === null) notFound();
 
   return (
     <section>
-      <Link href="/" className="crumb">
+      <Link href={`/subjects?${query}`} className="crumb">
         <span className="crumb-arrow" aria-hidden="true">←</span> All subjects
       </Link>
       <header className="page-heading">
@@ -34,7 +44,10 @@ export default async function SubjectPage({ params }) {
           <ul className="rows type-list">
             {types.map((type, index) => (
               <li className="subject-entry" key={type.id}>
-                <Link href={`/subject/${id}/${type.id}`} className="row type-row">
+                <Link
+                  href={`/subject/${id}/${type.id}?${query}`}
+                  className="row type-row"
+                >
                   <span className="type-number">
                     {String(index + 1).padStart(2, "0")}
                   </span>

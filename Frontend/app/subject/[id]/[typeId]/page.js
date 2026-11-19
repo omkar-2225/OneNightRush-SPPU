@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSubjects, getTypes, getResources } from "../../../../lib/api";
 import ResourceItem from "../../../../components/ResourceItem";
+import { getStudySelection } from "../../../../lib/studySelection";
 
 // The backend already sorts by unit, so groups come out in order.
 function groupByUnit(resources) {
@@ -18,12 +19,18 @@ function groupByUnit(resources) {
   return groups;
 }
 
-export default async function CategoryPage({ params }) {
+export default async function CategoryPage({ params, searchParams }) {
   const { id, typeId } = await params;
   if (!/^\d+$/.test(id) || !/^\d+$/.test(typeId)) notFound();
 
+  const selection = getStudySelection(await searchParams);
+  const query = new URLSearchParams({
+    branch: selection.branch,
+    year: String(selection.year),
+    semester: String(selection.semester),
+  });
   const [subjects, types, resources] = await Promise.all([
-    getSubjects(),
+    getSubjects(selection),
     getTypes(id),
     getResources(id, typeId),
   ]);
@@ -36,7 +43,7 @@ export default async function CategoryPage({ params }) {
 
   return (
     <section>
-      <Link href={`/subject/${id}`} className="crumb">
+      <Link href={`/subject/${id}?${query}`} className="crumb">
         <span className="crumb-arrow" aria-hidden="true">←</span> {subject.name}
       </Link>
       <header className="page-heading">
