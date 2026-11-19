@@ -681,6 +681,65 @@ h3 {
   background: #fff;
 }
 
+.pdf-viewer {
+  margin-top: 18px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: #fff;
+}
+
+.pdf-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.pdf-controls button {
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--paper);
+  color: var(--green);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pdf-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pdf-page {
+  display: flex;
+  justify-content: center;
+  max-height: 75vh;
+  padding: 12px;
+  overflow: auto;
+}
+
+.pdf-page .react-pdf__Page {
+  max-width: 100%;
+}
+
+.pdf-page canvas {
+  display: block;
+  max-width: 100%;
+  height: auto !important;
+}
+
+.pdf-error {
+  margin: 18px;
+  color: var(--orange);
+  font-size: 14px;
+}
+
 .hint {
   margin: 8px 0 0;
   color: var(--muted);

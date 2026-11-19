@@ -1,6 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
+
+const PdfViewer = dynamic(() => import("./PdfViewer"), {
+  ssr: false,
+  loading: () => <p className="hint">Loading PDF viewer…</p>,
+});
 
 // Turns a stored link into something an iframe can show. Returns null if it can't.
 function embedUrl(url, kind) {
@@ -25,6 +31,8 @@ function embedUrl(url, kind) {
 export default function ResourceItem({ resource }) {
   const [open, setOpen] = useState(false);
   const src = embedUrl(resource.url, resource.link_kind);
+  const isPdf =
+    resource.link_kind === "file" && /\.pdf(?:$|[?#])/i.test(resource.url);
 
   return (
     <div className="item">
@@ -44,14 +52,22 @@ export default function ResourceItem({ resource }) {
 
       {open && src && (
         <>
-          <iframe
-            className="viewer"
-            src={src}
-            title={resource.title}
-            loading="lazy"
-            allowFullScreen
-          />
-          <p className="hint">Not loading on your phone? Use Open in new tab.</p>
+          {isPdf ? (
+            <PdfViewer url={resource.url} title={resource.title} />
+          ) : (
+            <>
+              <iframe
+                className="viewer"
+                src={src}
+                title={resource.title}
+                loading="lazy"
+                allowFullScreen
+              />
+              <p className="hint">
+                Not loading on your phone? Use Open in new tab.
+              </p>
+            </>
+          )}
         </>
       )}
     </div>
