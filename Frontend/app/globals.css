@@ -762,7 +762,8 @@ h3 {
 
 .pdf-pages {
   display: flex;
-  max-height: 75vh;
+  height: 70vh;
+  min-height: 320px;
   flex-direction: column;
   align-items: center;
   gap: 16px;

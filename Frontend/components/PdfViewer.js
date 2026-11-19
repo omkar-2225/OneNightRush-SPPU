@@ -1,78 +1,138 @@
 "use client";
 
+import "./pdfPolyfills";
 import { useEffect, useRef, useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
-import "react-pdf/dist/Page/AnnotationLayer.css";
-import "react-pdf/dist/Page/TextLayer.css";
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.min.mjs",
+  "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
   import.meta.url,
 ).toString();
 
-export default function PdfViewer({ url, title }) {
-  const viewerRef = useRef(null);
-  const pageRefs = useRef({});
-  const [pageWidth, setPageWidth] = useState(0);
-  const [pageNumber, setPageNumber] = useState(1);
-  const [pageInput, setPageInput] = useState("1");
-  const [pageCount, setPageCount] = useState(0);
-  const [zoom, setZoom] = useState(1);
+const MIN_ZOOM = 0.6;
+const MAX_ZOOM = 2;
+
+function LoadError({ url }) {
+  return (
+    <p className="pdf-error">
+      Could not load this PDF here.{" "}
+      <a href={url} target="_blank" rel="noopener noreferrer">
+        Open it in a new tab
+      </a>
+      .
+    </p>
+  );
+}
+
+function LazyPage({ number, width, scrollerRef }) {
+  const boxRef = useRef(null);
+  const [show, setShow] = useState(number <= 2);
+  const [height, setHeight] = useState(Math.round(width * 1.41));
 
   useEffect(() => {
-    const viewer = viewerRef.current;
-    if (!viewer) return;
+    setHeight(Math.round(width * 1.41));
+  }, [width]);
+
+  useEffect(() => {
+    const box = boxRef.current;
+    if (!box) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setShow(true);
+        } else {
+          setHeight(box.offsetHeight);
+          setShow(false);
+        }
+      },
+      { root: scrollerRef.current, rootMargin: "150% 0px" },
+    );
+    observer.observe(box);
+    return () => observer.disconnect();
+  }, [scrollerRef]);
+
+  return (
+    <div
+      className="pdf-sheet"
+      data-pdf-page={number}
+      ref={boxRef}
+      style={{ minHeight: height, width }}
+    >
+      {show && (
+        <Page
+          pageNumber={number}
+          width={width}
+          devicePixelRatio={Math.min(window.devicePixelRatio || 1, 2)}
+          renderTextLayer={false}
+          renderAnnotationLayer={false}
+        />
+      )}
+    </div>
+  );
+}
+
+export default function PdfViewer({ url, title }) {
+  const scrollerRef = useRef(null);
+  const [baseWidth, setBaseWidth] = useState(0);
+  const [zoom, setZoom] = useState(1);
+  const [pageCount, setPageCount] = useState(0);
+  const [pageNumber, setPageNumber] = useState(1);
+
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
 
     const observer = new ResizeObserver(([entry]) => {
-      setPageWidth(Math.max(1, Math.floor(entry.contentRect.width - 32)));
+      setBaseWidth(Math.max(1, Math.floor(entry.contentRect.width - 24)));
     });
-    observer.observe(viewer);
-
+    observer.observe(scroller);
     return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
-    const viewer = viewerRef.current;
-    if (!viewer || !pageCount) return;
+    const scroller = scrollerRef.current;
+    if (!scroller || !pageCount) return;
 
-    const pages = viewer.querySelectorAll("[data-pdf-page]");
     const observer = new IntersectionObserver(
       (entries) => {
-        const visiblePages = entries
+        const best = entries
           .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
-        if (visiblePages.length) {
-          const currentPage = Number(visiblePages[0].target.dataset.pdfPage);
-          setPageNumber(currentPage);
-          setPageInput(String(currentPage));
-        }
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (best) setPageNumber(Number(best.target.dataset.pdfPage));
       },
-      { root: viewer, threshold: [0.2, 0.5, 0.8] },
+      { root: scroller, threshold: [0.2, 0.5, 0.8] },
     );
-
-    pages.forEach((page) => observer.observe(page));
+    scroller
+      .querySelectorAll("[data-pdf-page]")
+      .forEach((element) => observer.observe(element));
     return () => observer.disconnect();
-  }, [pageCount, pageWidth]);
+  }, [pageCount, baseWidth, zoom]);
 
-  function goToPage(page) {
-    const nextPage = Math.min(pageCount, Math.max(1, Number(page) || 1));
-    setPageNumber(nextPage);
-    setPageInput(String(nextPage));
-    pageRefs.current[nextPage]?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
+  function goToPage(target) {
+    const scroller = scrollerRef.current;
+    const page = Math.min(pageCount, Math.max(1, target));
+    const element = scroller?.querySelector(`[data-pdf-page="${page}"]`);
+    if (element) scroller.scrollTo({ top: element.offsetTop, behavior: "smooth" });
   }
 
   function zoomBy(amount) {
-    setZoom((current) => Math.min(2.5, Math.max(0.5, current + amount)));
+    setZoom((current) =>
+      Math.min(
+        MAX_ZOOM,
+        Math.max(MIN_ZOOM, Math.round((current + amount) * 10) / 10),
+      ),
+    );
   }
+
+  const width = Math.round(baseWidth * zoom);
 
   return (
     <div className="pdf-viewer">
       <div className="pdf-toolbar">
-        <span className="pdf-title" title={title}>{title}</span>
-
+        <span className="pdf-title" title={title}>
+          {title}
+        </span>
         <div className="pdf-toolbar-group">
           <button
             type="button"
@@ -82,19 +142,9 @@ export default function PdfViewer({ url, title }) {
           >
             ‹
           </button>
-          <label className="pdf-page-count">
-            <input
-              aria-label="Current page"
-              inputMode="numeric"
-              value={pageInput}
-              onChange={(event) => setPageInput(event.target.value)}
-              onBlur={() => goToPage(pageInput)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") goToPage(pageInput);
-              }}
-            />
-            <span>/ {pageCount || "…"}</span>
-          </label>
+          <span className="pdf-page-count">
+            {pageNumber} / {pageCount || "…"}
+          </span>
           <button
             type="button"
             aria-label="Next page"
@@ -104,13 +154,12 @@ export default function PdfViewer({ url, title }) {
             ›
           </button>
         </div>
-
         <div className="pdf-toolbar-group">
           <button
             type="button"
             aria-label="Zoom out"
-            onClick={() => zoomBy(-0.1)}
-            disabled={zoom <= 0.5}
+            onClick={() => zoomBy(-0.2)}
+            disabled={zoom <= MIN_ZOOM}
           >
             −
           </button>
@@ -118,53 +167,30 @@ export default function PdfViewer({ url, title }) {
           <button
             type="button"
             aria-label="Zoom in"
-            onClick={() => zoomBy(0.1)}
-            disabled={zoom >= 2.5}
+            onClick={() => zoomBy(0.2)}
+            disabled={zoom >= MAX_ZOOM}
           >
             +
-          </button>
-          <button type="button" onClick={() => setZoom(1)}>
-            Fit
           </button>
         </div>
       </div>
 
-      <div className="pdf-pages" ref={viewerRef}>
+      <div className="pdf-pages" ref={scrollerRef}>
         <Document
           file={url}
-          onLoadSuccess={({ numPages }) => {
-            setPageCount(numPages);
-            setPageNumber(1);
-            setPageInput("1");
-          }}
+          onLoadSuccess={({ numPages }) => setPageCount(numPages)}
           loading={<p className="hint">Loading PDF…</p>}
-          error={
-            <p className="pdf-error">
-              Could not load this PDF. Check that the file is publicly accessible.
-            </p>
-          }
+          error={<LoadError url={url} />}
         >
-          {pageWidth > 0 &&
-            Array.from({ length: pageCount }, (_, index) => {
-              const number = index + 1;
-              return (
-                <div
-                  className="pdf-sheet"
-                  data-pdf-page={number}
-                  key={number}
-                  ref={(element) => {
-                    pageRefs.current[number] = element;
-                  }}
-                >
-                  <Page
-                    pageNumber={number}
-                    width={Math.round(pageWidth * zoom)}
-                    renderTextLayer
-                    renderAnnotationLayer
-                  />
-                </div>
-              );
-            })}
+          {width > 0 &&
+            Array.from({ length: pageCount }, (_, index) => (
+              <LazyPage
+                key={index + 1}
+                number={index + 1}
+                width={width}
+                scrollerRef={scrollerRef}
+              />
+            ))}
         </Document>
       </div>
     </div>
