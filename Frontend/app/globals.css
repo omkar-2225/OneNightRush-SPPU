@@ -681,6 +681,18 @@ h3 {
   background: #fff;
 }
 
+.pdf-viewer-options {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.item .pdf-viewer-options button[aria-pressed="true"] {
+  color: var(--ink);
+  text-decoration: none;
+  cursor: default;
+}
+
 .pdf-viewer {
   margin-top: 18px;
   overflow: hidden;

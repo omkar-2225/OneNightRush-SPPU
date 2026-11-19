@@ -25,6 +25,7 @@ function embedUrl(url, kind) {
 
 export default function ResourceItem({ resource }) {
   const [open, setOpen] = useState(false);
+  const [pdfViewer, setPdfViewer] = useState("browser");
   const src = embedUrl(resource.url, resource.link_kind);
   const isPdf =
     resource.link_kind === "file" && /\.pdf(?:$|[?#])/i.test(resource.url);
@@ -47,7 +48,25 @@ export default function ResourceItem({ resource }) {
 
       {open && src && (
         <>
-          {isPdf ? (
+          {isPdf && (
+            <div className="pdf-viewer-options" role="group" aria-label="PDF viewer">
+              <button
+                type="button"
+                aria-pressed={pdfViewer === "browser"}
+                onClick={() => setPdfViewer("browser")}
+              >
+                Browser viewer
+              </button>
+              <button
+                type="button"
+                aria-pressed={pdfViewer === "custom"}
+                onClick={() => setPdfViewer("custom")}
+              >
+                Custom viewer
+              </button>
+            </div>
+          )}
+          {isPdf && pdfViewer === "custom" ? (
             <PdfReader url={resource.url} title={resource.title} />
           ) : (
             <>
@@ -59,7 +78,7 @@ export default function ResourceItem({ resource }) {
                 allowFullScreen
               />
               <p className="hint">
-                Not loading on your phone? Use Open in new tab.
+                Not loading? Choose the custom viewer or use Open in new tab.
               </p>
             </>
           )}
