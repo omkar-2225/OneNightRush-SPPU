@@ -1,5 +1,5 @@
 // All calls to the FastAPI backend live here.
-const API = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
+const API = process.env.NEXT_PUBLIC_API_URL;
 
 async function get(path) {
   // Re-ask the backend at most once a minute, so new notes show up quickly.
